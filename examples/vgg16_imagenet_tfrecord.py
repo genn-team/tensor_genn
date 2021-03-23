@@ -78,94 +78,91 @@ if __name__ == '__main__':
     # Create L2 regularizer
     regularizer = regularizers.l2(0.0001)
 
-    # Create, train and evaluate TensorFlow model
-    tf_model = models.Sequential([
-        layers.Conv2D(64, 3, padding='same', activation='relu', use_bias=False, input_shape=(224, 224, 3),
-                      kernel_initializer=initializer, kernel_regularizer=regularizer),
-        layers.Dropout(0.3),
-        layers.Conv2D(64, 3, padding='same', activation='relu', use_bias=False,
-                      kernel_initializer=initializer, kernel_regularizer=regularizer),
-        layers.AveragePooling2D(2),
+    # Create mirrored strategy
+    strategy = tf.distribute.MirroredStrategy()
 
-        layers.Conv2D(128, 3, padding="same", activation="relu", use_bias=False,
-                      kernel_initializer=initializer, kernel_regularizer=regularizer),
-        layers.Dropout(0.4),
-        layers.Conv2D(128, 3, padding="same", activation="relu", use_bias=False,
-                      kernel_initializer=initializer, kernel_regularizer=regularizer),
-        layers.AveragePooling2D(2),
+    with strategy.scope():
+        # Create, train and evaluate TensorFlow model
+        tf_model = models.Sequential([
+            layers.Conv2D(64, 3, padding='same', activation='relu', use_bias=False, input_shape=(224, 224, 3),
+                          kernel_initializer=initializer, kernel_regularizer=regularizer),
+            layers.Dropout(0.3),
+            layers.Conv2D(64, 3, padding='same', activation='relu', use_bias=False,
+                          kernel_initializer=initializer, kernel_regularizer=regularizer),
+            layers.AveragePooling2D(2),
 
-        layers.Conv2D(256, 3, padding="same", activation="relu", use_bias=False,
-                      kernel_initializer=initializer, kernel_regularizer=regularizer),
-        layers.Dropout(0.4),
-        layers.Conv2D(256, 3, padding="same", activation="relu", use_bias=False,
-                      kernel_initializer=initializer, kernel_regularizer=regularizer),
-        layers.Dropout(0.4),
-        layers.Conv2D(256, 3, padding="same", activation="relu", use_bias=False,
-                      kernel_initializer=initializer, kernel_regularizer=regularizer),
-        layers.AveragePooling2D(2),
+            layers.Conv2D(128, 3, padding="same", activation="relu", use_bias=False,
+                          kernel_initializer=initializer, kernel_regularizer=regularizer),
+            layers.Dropout(0.4),
+            layers.Conv2D(128, 3, padding="same", activation="relu", use_bias=False,
+                          kernel_initializer=initializer, kernel_regularizer=regularizer),
+            layers.AveragePooling2D(2),
 
-        layers.Conv2D(512, 3, padding="same", activation="relu", use_bias=False,
-                      kernel_initializer=initializer, kernel_regularizer=regularizer),
-        layers.Dropout(0.4),
-        layers.Conv2D(512, 3, padding="same", activation="relu", use_bias=False,
-                      kernel_initializer=initializer, kernel_regularizer=regularizer),
-        layers.Dropout(0.4),
-        layers.Conv2D(512, 3, padding="same", activation="relu", use_bias=False,
-                      kernel_initializer=initializer, kernel_regularizer=regularizer),
-        layers.AveragePooling2D(2),
+            layers.Conv2D(256, 3, padding="same", activation="relu", use_bias=False,
+                          kernel_initializer=initializer, kernel_regularizer=regularizer),
+            layers.Dropout(0.4),
+            layers.Conv2D(256, 3, padding="same", activation="relu", use_bias=False,
+                          kernel_initializer=initializer, kernel_regularizer=regularizer),
+            layers.Dropout(0.4),
+            layers.Conv2D(256, 3, padding="same", activation="relu", use_bias=False,
+                          kernel_initializer=initializer, kernel_regularizer=regularizer),
+            layers.AveragePooling2D(2),
 
-        layers.Conv2D(512, 3, padding="same", activation="relu", use_bias=False,
-                      kernel_initializer=initializer, kernel_regularizer=regularizer),
-        layers.Dropout(0.4),
-        layers.Conv2D(512, 3, padding="same", activation="relu", use_bias=False,
-                      kernel_initializer=initializer, kernel_regularizer=regularizer),
-        layers.Dropout(0.4),
-        layers.Conv2D(512, 3, padding="same", activation="relu", use_bias=False,
-                      kernel_initializer=initializer, kernel_regularizer=regularizer),
-        layers.AveragePooling2D(2),
+            layers.Conv2D(512, 3, padding="same", activation="relu", use_bias=False,
+                          kernel_initializer=initializer, kernel_regularizer=regularizer),
+            layers.Dropout(0.4),
+            layers.Conv2D(512, 3, padding="same", activation="relu", use_bias=False,
+                          kernel_initializer=initializer, kernel_regularizer=regularizer),
+            layers.Dropout(0.4),
+            layers.Conv2D(512, 3, padding="same", activation="relu", use_bias=False,
+                          kernel_initializer=initializer, kernel_regularizer=regularizer),
+            layers.AveragePooling2D(2),
 
-        layers.Flatten(),
-        layers.Dense(4096, activation="relu", use_bias=False, kernel_regularizer=regularizer),
-        layers.Dropout(0.5),
-        layers.Dense(4096, activation="relu", use_bias=False, kernel_regularizer=regularizer),
-        layers.Dropout(0.5),
-        layers.Dense(1000, activation="softmax", use_bias=False, kernel_regularizer=regularizer),
-    ], name='vgg16_imagenet')
+            layers.Conv2D(512, 3, padding="same", activation="relu", use_bias=False,
+                          kernel_initializer=initializer, kernel_regularizer=regularizer),
+            layers.Dropout(0.4),
+            layers.Conv2D(512, 3, padding="same", activation="relu", use_bias=False,
+                          kernel_initializer=initializer, kernel_regularizer=regularizer),
+            layers.Dropout(0.4),
+            layers.Conv2D(512, 3, padding="same", activation="relu", use_bias=False,
+                          kernel_initializer=initializer, kernel_regularizer=regularizer),
+            layers.AveragePooling2D(2),
 
+            layers.Flatten(),
+            layers.Dense(4096, activation="relu", use_bias=False, kernel_regularizer=regularizer),
+            layers.Dropout(0.5),
+            layers.Dense(4096, activation="relu", use_bias=False, kernel_regularizer=regularizer),
+            layers.Dropout(0.5),
+            layers.Dense(1000, activation="softmax", use_bias=False, kernel_regularizer=regularizer),
+        ], name='vgg16_imagenet')
 
-    if args.reuse_tf_model:
-        with CustomObjectScope({'initializer': initializer}):
-            tf_model = models.load_model('training_checkpoints/checkpoint-87.hdf5')
-
-    else:
         initial_epoch = 0
 
         # If there are any existing checkpoints
         existing_checkpoints = list(sorted(glob(str(checkpoint_root / 'checkpoint-*.hdf5'))))
         if len(existing_checkpoints) > 0:
-            # Load model from newest ceckpoint
+            # Load model from newest checkpoint
             newest_checkpoint_file = existing_checkpoints[-1]
+            with CustomObjectScope({'initializer': initializer}):
+                tf_model = models.load_model(newest_checkpoint_file)
 
-
-
+            # Extract epoch number from checkpoint
+            existing_checkpoint_title = os.path.splitext(os.path.basename(newest_checkpoint_file))[0]
+            initial_epoch = int(existing_checkpoint_title.split('-')[1])
+            print("Resuming training at epoch %u from checkpoint %s" % (initial_epoch, newest_checkpoint_file))
 
         callbacks = [callbacks.LearningRateScheduler(schedule),
-                     callbacks.ModelCheckpoint(checkpoint_root)]
+                     callbacks.ModelCheckpoint(checkpoint_root / 'checkpoint-{epoch:02d}.hdf5')]
         if args.record_tensorboard:
             callbacks.append(callbacks.TensorBoard(log_dir="logs", histogram_freq=1, profile_batch=(4,8)))
 
         optimizer = optimizers.SGD(lr=0.05, momentum=0.9)
 
-        #tf_model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-        #tf_model.fit(image_ds, epochs=100, callbacks=callbacks)
-
-        #models.save_model(tf_model, 'vgg16_imagenet_tf_model', save_format='h5')
-
+        tf_model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+        tf_model.fit(image_ds, epochs=100, initial_epoch=initial_epoch, callbacks=callbacks)
 
 
     tf_model.evaluate(image_ds)
-
-
     exit(0)
 
 
